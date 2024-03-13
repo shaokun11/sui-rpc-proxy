@@ -21,7 +21,7 @@ server.applyMiddleware(async function (next, request, serverParams) {
 });
 
 export const initRouter = function (app) {
-    app.use('/rpc', async function (req, res, next) {
+    app.use('/v1', async function (req, res, next) {
         const context = { ip: req.ip };
         console.log('>>> %s %s', context.ip, req.body.method);
         const str_req = `<<< ${JSON.stringify(req.body)} \n`;

@@ -1,1 +1,1 @@
-export const SERVER_PORT = process.env.SERVER_PORT || 3044;
+export const SERVER_PORT = process.env.SERVER_PORT || 3041;
