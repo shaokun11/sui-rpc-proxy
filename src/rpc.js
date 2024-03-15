@@ -1,4 +1,5 @@
 import { Bridge } from './bridge.js';
+import { decodeSuiTx } from './helper.js';
 export const rpc = {
     suix_getStakes: function () {
         return [];
@@ -15,7 +16,8 @@ export const rpc = {
     sui_getObject: async function (args) {
         const objectId = args[0];
         const option = args[1];
-        return {
+        const value = await Bridge.getCounter(objectId);
+        const template = {
             data: {
                 objectId: '0x8791509916de7f5636754df6b1070939e1eec2d467a2daf3699a7943462fd1bb',
                 version: '927557',
@@ -34,6 +36,11 @@ export const rpc = {
                 },
             },
         };
+        template.data.objectId = objectId;
+        template.data.content.fields.id.id = objectId;
+        template.data.content.fields.owner = objectId;
+        template.data.content.fields.value = value;
+        return template;
     },
     suix_getReferenceGasPrice: function () {
         return '1000';
@@ -489,6 +496,8 @@ export const rpc = {
     },
     sui_multiGetObjects: async function (args) {
         const [object_ids] = args;
+        // todo
+        // now just return a fixed object
         return [
             {
                 data: {
@@ -501,7 +510,9 @@ export const rpc = {
         ];
     },
     sui_getTransactionBlock: async function (args) {
-        const { digest } = args;
+        // todo
+        //     // now just return a fixed block
+        const [digest] = args;
         return {
             digest: '2kufKvXprgGmha5tNfH2kn4wKXfGpyyS4qVUG5v8NrJG',
             transaction: {
@@ -655,6 +666,8 @@ export const rpc = {
     },
     suix_queryTransactionBlocks: async function (args) {
         const [query, cursor, limit, descending_order] = args;
+        // todo
+        // now just return a fixed block
         return {
             data: [
                 {
@@ -4161,6 +4174,8 @@ export const rpc = {
     },
     sui_dryRunTransactionBlock: async function (args) {
         const [tx_data] = args;
+        // todo
+        // now always return success
         return {
             effects: {
                 messageVersion: 'v1',
@@ -4288,8 +4303,9 @@ export const rpc = {
         };
     },
     sui_executeTransactionBlock: async function (args) {
-        const [tx_data, signature] = args;
-        return {
+        // const [tx_data, signature] = args;
+        let tx_data = await decodeSuiTx(args[0], args[1]);
+        const template = {
             digest: '2XwkZx8v57iTxLFRu9vJs1HrVStc3uNenmLLqiAug5ZE',
             effects: {
                 messageVersion: 'v1',
@@ -4348,5 +4364,18 @@ export const rpc = {
             },
             confirmedLocalExecution: true,
         };
+        if (tx_data.V1.kind['ProgrammableTransaction']) {
+            const tx = tx_data.V1.kind['ProgrammableTransaction'];
+            const call = tx.commands[0].MoveCall;
+            if (call.function === 'create') {
+                let { digest, object_id } = await Bridge.counterCreate();
+                template.digest = digest;
+                template.effects.transactionDigest = digest;
+                template.effects.created[0].reference.objectId = object_id;
+                return template;
+            } else {
+                throw 'unsupported transaction kind';
+            }
+        }
     },
 };

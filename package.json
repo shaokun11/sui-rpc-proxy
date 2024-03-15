@@ -12,8 +12,12 @@
   "author": "shaokun",
   "license": "ISC",
   "dependencies": {
+    "aptos": "^1.21.0",
+    "aptos-sui": "https://github.com/shaokun11/move-chain-sdk",
+    "bs58": "^5.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "execa": "^8.0.1",
     "express": "^4.18.2",
     "json-rpc-2.0": "^1.7.0"
   },
