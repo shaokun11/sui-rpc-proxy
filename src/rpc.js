@@ -1,5 +1,6 @@
 import { Bridge } from './bridge.js';
 import { decodeSuiTx } from './helper.js';
+import util from 'node:util';
 export const rpc = {
     suix_getStakes: function () {
         return [];
@@ -4303,8 +4304,8 @@ export const rpc = {
         };
     },
     sui_executeTransactionBlock: async function (args) {
-        // const [tx_data, signature] = args;
         let tx_data = await decodeSuiTx(args[0], args[1]);
+        console.log(util.inspect(tx_data, false, null, true));
         const template = {
             digest: '2XwkZx8v57iTxLFRu9vJs1HrVStc3uNenmLLqiAug5ZE',
             effects: {
@@ -4367,15 +4368,25 @@ export const rpc = {
         if (tx_data.V1.kind['ProgrammableTransaction']) {
             const tx = tx_data.V1.kind['ProgrammableTransaction'];
             const call = tx.commands[0].MoveCall;
+            const inputs = tx.inputs;
+            let call_result;
             if (call.function === 'create') {
-                let { digest, object_id } = await Bridge.counterCreate();
-                template.digest = digest;
-                template.effects.transactionDigest = digest;
-                template.effects.created[0].reference.objectId = object_id;
-                return template;
+                call_result = await Bridge.counterCreate();
+            } else if (call.function === 'increment') {
+                let object = inputs[call.arguments[0].Input];
+                let object_id = Object.values(object.Object)[0].id;
+                call_result = await Bridge.counterIncrement(object_id);
+                delete template.effects.created;
+            } else if (call.function === 'set_value') {
             } else {
                 throw 'unsupported transaction kind';
             }
+            let { digest, object_id } = call_result;
+            template.digest = digest;
+            template.effects.transactionDigest = digest;
+
+            template.effects.created[0].reference.objectId = object_id;
+            return template;
         }
     },
 };

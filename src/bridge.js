@@ -1,5 +1,5 @@
 import { CHAIN_PROVIDER } from './client.js';
-import { hexToDigest, toBuffer } from './helper.js';
+import { hexToDigest } from './helper.js';
 
 export const Bridge = {
     async getBalance() {
@@ -41,7 +41,20 @@ export const Bridge = {
         let payload = {
             function: `${CHAIN_PROVIDER.sender}::counter::increment`,
             type_arguments: [],
-            arguments: [toBuffer(object_id)],
+            arguments: [object_id],
+        };
+        let hash = await CHAIN_PROVIDER.sendTx(payload);
+        let res = CHAIN_PROVIDER.checkTxResult(hash);
+        if (!res.success) {
+            throw 'execute failed';
+        }
+    },
+
+    async counterSet(object_id, value) {
+        let payload = {
+            function: `${CHAIN_PROVIDER.sender}::counter::set_value`,
+            type_arguments: [],
+            arguments: [object_id, value],
         };
         let hash = await CHAIN_PROVIDER.sendTx(payload);
         let res = CHAIN_PROVIDER.checkTxResult(hash);
