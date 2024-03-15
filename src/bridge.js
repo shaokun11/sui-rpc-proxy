@@ -39,7 +39,7 @@ export const Bridge = {
 
     async counterIncrement(object_id) {
         let payload = {
-            function: `${CHAIN_PROVIDER.sender}::counter::create`,
+            function: `${CHAIN_PROVIDER.sender}::counter::increment`,
             type_arguments: [],
             arguments: [toBuffer(object_id)],
         };
