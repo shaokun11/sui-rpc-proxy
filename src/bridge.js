@@ -44,7 +44,7 @@ export const Bridge = {
             arguments: [object_id],
         };
         let hash = await CHAIN_PROVIDER.sendTx(payload);
-        let res = CHAIN_PROVIDER.checkTxResult(hash);
+        let res = await CHAIN_PROVIDER.checkTxResult(hash);
         if (!res.success) {
             throw 'execute failed';
         }
@@ -57,7 +57,7 @@ export const Bridge = {
             arguments: [object_id, value],
         };
         let hash = await CHAIN_PROVIDER.sendTx(payload);
-        let res = CHAIN_PROVIDER.checkTxResult(hash);
+        let res = await CHAIN_PROVIDER.checkTxResult(hash);
         if (!res.success) {
             throw 'execute failed';
         }
