@@ -4372,20 +4372,18 @@ export const rpc = {
             let call_result;
             if (call.function === 'create') {
                 call_result = await Bridge.counterCreate();
+                let { digest, object_id } = call_result;
+                template.digest = digest;
+                template.effects.transactionDigest = digest;
+                template.effects.created[0].reference.objectId = object_id;
             } else if (call.function === 'increment') {
                 let object = inputs[call.arguments[0].Input];
                 let object_id = Object.values(object.Object)[0].id;
                 call_result = await Bridge.counterIncrement(object_id);
                 delete template.effects.created;
-            } else if (call.function === 'set_value') {
             } else {
                 throw 'unsupported transaction kind';
             }
-            let { digest, object_id } = call_result;
-            template.digest = digest;
-            template.effects.transactionDigest = digest;
-
-            template.effects.created[0].reference.objectId = object_id;
             return template;
         }
     },
