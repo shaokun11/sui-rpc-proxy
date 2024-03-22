@@ -4925,6 +4925,7 @@ name = "sui-transaction-decode"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bcs",
  "fastcrypto 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "fastcrypto-zkp",
  "hex",
