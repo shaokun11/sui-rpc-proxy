@@ -2,7 +2,7 @@ import { HexString } from 'aptos-sui';
 import base58 from 'bs58';
 import os from 'node:os';
 import { execa } from 'execa';
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 export function toBuffer(hex) {
     return new HexString(hex).toUint8Array();
 }
@@ -29,7 +29,9 @@ export async function decodeSuiTx(tx_data, signature) {
     } else {
         p = 'target/release/sui-tx-decoder';
     }
-    if (fs.existsSync(p) === false) {
+    try {
+        await fs.access(p, fs.constants.F_OK);
+    } catch (e) {
         throw "please run 'cargo build -p ' to build sui transaction decoder binary'";
     }
     const { stdout } = await execa(p, params).catch(e => {
