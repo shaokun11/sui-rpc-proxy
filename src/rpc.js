@@ -4014,9 +4014,7 @@ export const rpc = {
         let tx_data = await decodeSuiTx(args[0]);
         const abi_payload = await Bridge.toAptPayload(tx_data);
         let call_result = await Bridge.simulateTx(abi_payload.payload);
-        if (!call_result.success) {
-            throw call_result.vm_status || 'transaction failed';
-        }
+        let error = !call_result.success ? call_result.vm_status || 'transaction failed' : null;
         const template = {
             effects: {
                 messageVersion: 'v1',
@@ -4040,6 +4038,10 @@ export const rpc = {
             balanceChanges: [],
             input: {},
         };
+        if (error) {
+            template.effects.status = { status: 'failure', error: error };
+            return template;
+        }
         template.effects.transactionDigest = hexToDigest(call_result.hash);
         template.input = AbiParse.parseSui(tx_data, abi_payload.payload, abi_payload.abi);
         return template;
@@ -4072,8 +4074,10 @@ export const rpc = {
         let hash = await Bridge.sendTx(abi_payload.payload);
         let call_result = await Bridge.checkTxResult(hash);
         // found create object
-        if (!call_result.success) {
-            throw call_result.vm_status || 'transaction failed';
+        let error = !call_result.success ? call_result.vm_status || 'transaction failed' : null;
+        if (error) {
+            template.effects.status = { status: 'failure', error: error };
+            return template;
         }
         let fee_info = call_result.events.find(it => it.type === '0x1::transaction_fee::FeeStatement');
         const digest = hexToDigest(hash);
