@@ -25,9 +25,9 @@ export async function decodeSuiTx(tx_data, signature) {
     if (signature) params.push(signature);
     let p = '';
     if (platform === 'win32') {
-        p = 'target/release/sui-tx-decoder.exe';
+        p = 'target/release/sui-transaction-decode.exe';
     } else {
-        p = 'target/release/sui-tx-decoder';
+        p = 'target/release/sui-transaction-decode';
     }
     try {
         await fs.access(p, fs.constants.F_OK);
