@@ -2,6 +2,7 @@ import { HexString } from 'aptos-sui';
 import base58 from 'bs58';
 import os from 'node:os';
 import { execa } from 'execa';
+import fs from 'node:fs';
 export function toBuffer(hex) {
     return new HexString(hex).toUint8Array();
 }
@@ -21,17 +22,15 @@ export function digestToHex(digest) {
 export async function decodeSuiTx(tx_data, signature) {
     let platform = os.platform();
     const params = [tx_data];
-    if (signature) {
-        // add signature to the params if it is provided , it will be verify the signature
-        params.push(signature);
-    }
+    if (signature) params.push(signature);
     let p = '';
     if (platform === 'win32') {
-        p = 'bin/sui-tx-decoder.exe';
-    } else if (platform === 'linux') {
-        p = 'bin/sui-tx-decoder';
+        p = 'target/release/sui-tx-decoder.exe';
     } else {
-        throw 'unsupported platform';
+        p = 'target/release/sui-tx-decoder';
+    }
+    if (fs.existsSync(p) === false) {
+        throw "please run 'cargo build -p ' to build sui transaction decoder binary'";
     }
     const { stdout } = await execa(p, params).catch(e => {
         // console.log(e);
