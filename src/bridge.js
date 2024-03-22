@@ -65,6 +65,7 @@ export const Bridge = {
             const call = tx.commands[0].MoveCall;
             let { package: pkg, module: mod, function: fun, type_arguments, arguments: args } = call;
             const abi = await this.getModuleAbi(pkg, mod, fun);
+            if (abi.parameters.length !== args.length) throw 'params not fit';
             args = args.map((arg, i) => {
                 const input = tx.inputs[i];
                 if (input.Pure) {
