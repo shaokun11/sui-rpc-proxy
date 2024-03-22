@@ -12,6 +12,7 @@ server.applyMiddleware(async function (next, request, serverParams) {
     try {
         return await next(request, serverParams);
     } catch (error) {
+        console.log('error', error);
         const message = typeof error === 'string' ? error : error?.message || 'Internal Error';
         const err = createJSONRPCErrorResponse(request.id, error?.code || -32000, message, {
             message,

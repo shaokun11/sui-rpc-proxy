@@ -1,4 +1,4 @@
-import { HexString } from 'aptos';
+import { HexString } from 'aptos-sui';
 import base58 from 'bs58';
 import os from 'node:os';
 import { execa } from 'execa';

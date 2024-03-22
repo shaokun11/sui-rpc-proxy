@@ -1,6 +1,9 @@
-import { Bridge } from './bridge.js';
-import { decodeSuiTx } from './helper.js';
 import util from 'node:util';
+
+import { Bridge } from './bridge.js';
+import { decodeSuiTx, hexToDigest } from './helper.js';
+import { AbiParse } from './abi_parse.js';
+
 export const rpc = {
     suix_getStakes: function () {
         return [];
@@ -17,7 +20,7 @@ export const rpc = {
     sui_getObject: async function (args) {
         const objectId = args[0];
         const option = args[1];
-        const value = await Bridge.getCounter(objectId);
+        const obj = await Bridge.getObject(objectId);
         const template = {
             data: {
                 objectId: '0x8791509916de7f5636754df6b1070939e1eec2d467a2daf3699a7943462fd1bb',
@@ -37,10 +40,14 @@ export const rpc = {
                 },
             },
         };
+        template.data.content.type = obj.type;
         template.data.objectId = objectId;
-        template.data.content.fields.id.id = objectId;
-        template.data.content.fields.owner = objectId;
-        template.data.content.fields.value = value;
+        template.data.content.fields = {
+            ...obj.data,
+            id: {
+                id: obj.data.id.id.bytes,
+            },
+        };
         return template;
     },
     suix_getReferenceGasPrice: function () {
@@ -63,179 +70,9 @@ export const rpc = {
             hasNextPage: false,
         };
     },
-    sui_getNormalizedMoveFunction: function (args) {
+    sui_getNormalizedMoveFunction: async function (args) {
         const [package_id, module_name, function_name] = args;
-        // rpc sui_getNormalizedMoveModule
-        let counter_obj = {
-            fileFormatVersion: 6,
-            address: '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-            name: 'counter',
-            friends: [],
-            structs: {
-                Counter: {
-                    abilities: {
-                        abilities: ['Key'],
-                    },
-                    typeParameters: [],
-                    fields: [
-                        {
-                            name: 'id',
-                            type: {
-                                Struct: {
-                                    address: '0x2',
-                                    module: 'object',
-                                    name: 'UID',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                        {
-                            name: 'owner',
-                            type: 'Address',
-                        },
-                        {
-                            name: 'value',
-                            type: 'U64',
-                        },
-                    ],
-                },
-            },
-            exposedFunctions: {
-                assert_value: {
-                    visibility: 'Public',
-                    isEntry: true,
-                    typeParameters: [],
-                    parameters: [
-                        {
-                            Reference: {
-                                Struct: {
-                                    address:
-                                        '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-                                    module: 'counter',
-                                    name: 'Counter',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                        'U64',
-                    ],
-                    return: [],
-                },
-                create: {
-                    visibility: 'Public',
-                    isEntry: true,
-                    typeParameters: [],
-                    parameters: [
-                        {
-                            MutableReference: {
-                                Struct: {
-                                    address: '0x2',
-                                    module: 'tx_context',
-                                    name: 'TxContext',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                    ],
-                    return: [],
-                },
-                delete: {
-                    visibility: 'Public',
-                    isEntry: true,
-                    typeParameters: [],
-                    parameters: [
-                        {
-                            Struct: {
-                                address: '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-                                module: 'counter',
-                                name: 'Counter',
-                                typeArguments: [],
-                            },
-                        },
-                        {
-                            Reference: {
-                                Struct: {
-                                    address: '0x2',
-                                    module: 'tx_context',
-                                    name: 'TxContext',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                    ],
-                    return: [],
-                },
-                increment: {
-                    visibility: 'Public',
-                    isEntry: true,
-                    typeParameters: [],
-                    parameters: [
-                        {
-                            MutableReference: {
-                                Struct: {
-                                    address:
-                                        '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-                                    module: 'counter',
-                                    name: 'Counter',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                    ],
-                    return: [],
-                },
-                set_value: {
-                    visibility: 'Public',
-                    isEntry: true,
-                    typeParameters: [],
-                    parameters: [
-                        {
-                            MutableReference: {
-                                Struct: {
-                                    address:
-                                        '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-                                    module: 'counter',
-                                    name: 'Counter',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                        'U64',
-                        {
-                            Reference: {
-                                Struct: {
-                                    address: '0x2',
-                                    module: 'tx_context',
-                                    name: 'TxContext',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                    ],
-                    return: [],
-                },
-                value: {
-                    visibility: 'Public',
-                    isEntry: false,
-                    typeParameters: [],
-                    parameters: [
-                        {
-                            Reference: {
-                                Struct: {
-                                    address:
-                                        '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-                                    module: 'counter',
-                                    name: 'Counter',
-                                    typeArguments: [],
-                                },
-                            },
-                        },
-                    ],
-                    return: ['U64'],
-                },
-            },
-        };
-        return counter_obj.exposedFunctions[function_name];
+        return Bridge.getModuleAbi(package_id, module_name, function_name);
     },
     sui_getProtocolConfig: function () {
         return {
@@ -4174,10 +4011,13 @@ export const rpc = {
         };
     },
     sui_dryRunTransactionBlock: async function (args) {
-        const [tx_data] = args;
-        // todo
-        // now always return success
-        return {
+        let tx_data = await decodeSuiTx(args[0]);
+        const abi_payload = await Bridge.toAptPayload(tx_data);
+        let call_result = await Bridge.simulateTx(abi_payload.payload);
+        if (!call_result.success) {
+            throw call_result.vm_status || 'transaction failed';
+        }
+        const template = {
             effects: {
                 messageVersion: 'v1',
                 status: { status: 'success' },
@@ -4188,126 +4028,27 @@ export const rpc = {
                     storageRebate: '1587564',
                     nonRefundableStorageFee: '16036',
                 },
-                modifiedAtVersions: [
-                    {
-                        objectId: '0x834720cae9612ed3f1cf073992a1a6d10d1d14dd98285a54382a00fdb13780d3',
-                        sequenceNumber: '927573',
-                    },
-                    {
-                        objectId: '0xfe2e23e66a245e032ecda2ca39ab5e974a5c0bada2d2ea57eee86cc4b97ed5f9',
-                        sequenceNumber: '1',
-                    },
-                ],
-                sharedObjects: [
-                    {
-                        objectId: '0x834720cae9612ed3f1cf073992a1a6d10d1d14dd98285a54382a00fdb13780d3',
-                        version: 927573,
-                        digest: '7B7USqE9xkJRNZs2UN5VNakhgr2VhefoocEiGrdwuG9L',
-                    },
-                ],
-                transactionDigest: '3vpQ4g8dEp9Vm98Hy2rrnUjXrjTtW1t8Uth6QmYrduo4',
-                mutated: [
-                    {
-                        owner: { Shared: { initial_shared_version: 927573 } },
-                        reference: {
-                            objectId: '0x834720cae9612ed3f1cf073992a1a6d10d1d14dd98285a54382a00fdb13780d3',
-                            version: 927574,
-                            digest: '7VyiQTzDsycRqzaUuHmkoQFHY8K7Vto8Q5zx18pwGpF1',
-                        },
-                    },
-                    {
-                        owner: {
-                            AddressOwner:
-                                '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                        },
-                        reference: {
-                            objectId: '0xfe2e23e66a245e032ecda2ca39ab5e974a5c0bada2d2ea57eee86cc4b97ed5f9',
-                            version: 927574,
-                            digest: '9ZDZoPdaAUH9z7cULQgeteP5mPL1R4FsXTHPeYAAY9jr',
-                        },
-                    },
-                ],
-                gasObject: {
-                    owner: {
-                        AddressOwner: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                    },
-                    reference: {
-                        objectId: '0xfe2e23e66a245e032ecda2ca39ab5e974a5c0bada2d2ea57eee86cc4b97ed5f9',
-                        version: 927574,
-                        digest: '9ZDZoPdaAUH9z7cULQgeteP5mPL1R4FsXTHPeYAAY9jr',
-                    },
-                },
-                dependencies: [
-                    '8WVr9K7cAf1rG6YqvE81b9QytWik3wwr4P7vA1B8f91x',
-                    'HT8ijwdZjjGFZcpjTmMaqQf6YNF9E6HpCEKDHLtMBSuA',
-                ],
+                modifiedAtVersions: [],
+                sharedObjects: [],
+                transactionDigest: '',
+                mutated: [],
+                gasObject: {},
+                dependencies: [],
             },
             events: [],
-            objectChanges: [
-                {
-                    type: 'mutated',
-                    sender: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                    owner: { Shared: { initial_shared_version: 927573 } },
-                    objectType:
-                        '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d::counter::Counter',
-                    objectId: '0x834720cae9612ed3f1cf073992a1a6d10d1d14dd98285a54382a00fdb13780d3',
-                    version: '927574',
-                    previousVersion: '927573',
-                    digest: '7VyiQTzDsycRqzaUuHmkoQFHY8K7Vto8Q5zx18pwGpF1',
-                },
-                {
-                    type: 'mutated',
-                    sender: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                    owner: {
-                        AddressOwner: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                    },
-                    objectType: '0x2::coin::Coin<0x2::sui::SUI>',
-                    objectId: '0xfe2e23e66a245e032ecda2ca39ab5e974a5c0bada2d2ea57eee86cc4b97ed5f9',
-                    version: '927574',
-                    previousVersion: '1',
-                    digest: '9ZDZoPdaAUH9z7cULQgeteP5mPL1R4FsXTHPeYAAY9jr',
-                },
-            ],
+            objectChanges: [],
             balanceChanges: [],
-            input: {
-                messageVersion: 'v1',
-                transaction: {
-                    kind: 'ProgrammableTransaction',
-                    inputs: [
-                        {
-                            type: 'object',
-                            objectType: 'sharedObject',
-                            objectId: '0x834720cae9612ed3f1cf073992a1a6d10d1d14dd98285a54382a00fdb13780d3',
-                            initialSharedVersion: '927573',
-                            mutable: true,
-                        },
-                    ],
-                    transactions: [
-                        {
-                            MoveCall: {
-                                package: '0x71f535f90178abd36f6e9dcf869c92846cb5ef3c4c2b9e159fa7949aa1f1be5d',
-                                module: 'counter',
-                                function: 'increment',
-                                arguments: [{ Input: 0 }],
-                            },
-                        },
-                    ],
-                },
-                sender: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                gasData: {
-                    payment: [],
-                    owner: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                    price: '1000',
-                    budget: '50000000000',
-                },
-            },
+            input: {},
         };
+        template.effects.transactionDigest = hexToDigest(call_result.hash);
+        template.input = AbiParse.parseSui(tx_data, abi_payload.payload, abi_payload.abi);
+        return template;
     },
     sui_executeTransactionBlock: async function (args) {
         let tx_data = await decodeSuiTx(args[0], args[1]);
         console.log(util.inspect(tx_data, false, null, true));
         const template = {
-            digest: '2XwkZx8v57iTxLFRu9vJs1HrVStc3uNenmLLqiAug5ZE',
+            digest: '',
             effects: {
                 messageVersion: 'v1',
                 status: { status: 'success' },
@@ -4318,73 +4059,58 @@ export const rpc = {
                     storageRebate: '978120',
                     nonRefundableStorageFee: '9880',
                 },
-                modifiedAtVersions: [
-                    {
-                        objectId: '0x31d129dacab348dd1b7b1441ee32146acfb1a7d53008bc244638d98ba0ae34ee',
-                        sequenceNumber: '927578',
-                    },
-                ],
-                transactionDigest: '2XwkZx8v57iTxLFRu9vJs1HrVStc3uNenmLLqiAug5ZE',
-                created: [
-                    {
-                        owner: { Shared: { initial_shared_version: 927579 } },
-                        reference: {
-                            objectId: '0x597b94bb9f2d2c5696123967060ec444c28f843b5114c3259c5ceeb7e98abaf8',
-                            version: 927579,
-                            digest: '3PPJ5q1FEzHZkphK7zXY7CKMqHCadCgx9wA3FTVFA1mp',
-                        },
-                    },
-                ],
-                mutated: [
-                    {
-                        owner: {
-                            AddressOwner:
-                                '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                        },
-                        reference: {
-                            objectId: '0x31d129dacab348dd1b7b1441ee32146acfb1a7d53008bc244638d98ba0ae34ee',
-                            version: 927579,
-                            digest: '4kSx1hdqkczpvEWZc6DzAh5hLJRvd3EL6HYFYAAuhCoH',
-                        },
-                    },
-                ],
-                gasObject: {
-                    owner: {
-                        AddressOwner: '0x642957aef4075311bf8fe83da40a1acb527b1ba7e87fe55647c2ebc65003cefb',
-                    },
-                    reference: {
-                        objectId: '0x31d129dacab348dd1b7b1441ee32146acfb1a7d53008bc244638d98ba0ae34ee',
-                        version: 927579,
-                        digest: '4kSx1hdqkczpvEWZc6DzAh5hLJRvd3EL6HYFYAAuhCoH',
-                    },
-                },
-                dependencies: [
-                    '6nMAnKLrc6gb5Fnue391beppBaqNyo9zYYpqYtVdZr88',
-                    '8WVr9K7cAf1rG6YqvE81b9QytWik3wwr4P7vA1B8f91x',
-                ],
+                modifiedAtVersions: [],
+                transactionDigest: '',
+                created: [],
+                mutated: [],
+                gasObject: {},
+                dependencies: [],
             },
             confirmedLocalExecution: true,
         };
-        if (tx_data.V1.kind['ProgrammableTransaction']) {
-            const tx = tx_data.V1.kind['ProgrammableTransaction'];
-            const call = tx.commands[0].MoveCall;
-            const inputs = tx.inputs;
-            let call_result;
-            if (call.function === 'create') {
-                call_result = await Bridge.counterCreate();
-                let { digest, object_id } = call_result;
-                template.digest = digest;
-                template.effects.transactionDigest = digest;
-                template.effects.created[0].reference.objectId = object_id;
-            } else if (call.function === 'increment') {
-                let object = inputs[call.arguments[0].Input];
-                let object_id = Object.values(object.Object)[0].id;
-                call_result = await Bridge.counterIncrement(object_id);
-                delete template.effects.created;
-            } else {
-                throw 'unsupported transaction kind';
-            }
-            return template;
+        const abi_payload = await Bridge.toAptPayload(tx_data);
+        let hash = await Bridge.sendTx(abi_payload.payload);
+        let call_result = await Bridge.checkTxResult(hash);
+        // found create object
+        if (!call_result.success) {
+            throw call_result.vm_status || 'transaction failed';
         }
+        let fee_info = call_result.events.find(it => it.type === '0x1::transaction_fee::FeeStatement');
+        const digest = hexToDigest(hash);
+        template.effects.gasObject = {
+            computationCost: call_result.gas_used,
+            storageCost: fee_info.storage_fee_octas,
+            storageRebate: fee_info.storage_fee_refund_octas,
+            nonRefundableStorageFee: 0,
+        };
+        template.digest = digest;
+        template.effects.transactionDigest = digest;
+        const created_arr = call_result.changes.filter(it => it.resource_type === 'sui');
+        created_arr.forEach(it => {
+            const item = {
+                owner: { Shared: { initial_shared_version: +call_result.version } },
+                reference: {
+                    objectId: it.data.data.id.id.bytes,
+                    version: call_result.version,
+                    digest: digest,
+                },
+            };
+            template.effects.created.push(item);
+            template.effects.mutated.push({
+                owner: {
+                    AddressOwner: tx_data.sender,
+                },
+                reference: {
+                    objectId: item.reference.objectId,
+                    version: item.reference.version,
+                    digest: digest,
+                },
+            });
+            template.effects.modifiedAtVersions.push({
+                objectId: item.reference.objectId,
+                sequenceNumber: call_result.sequence_number,
+            });
+        });
+        return template;
     },
 };
