@@ -2,18 +2,25 @@ import { AptosClient, AptosAccount } from 'aptos-sui';
 import { NODE_URL, SENDER_KEY } from './const.js';
 import { AbiParse } from './abi_parse.js';
 import { bcs } from '@mysten/bcs';
+import { execa } from 'execa';
 const client = new AptosClient(NODE_URL);
+import 'dotenv/config';
+
 const SENDER_ACCOUNT = AptosAccount.fromAptosAccountObject({
     privateKeyHex: SENDER_KEY,
 });
 const SENDER_ADDRESS = SENDER_ACCOUNT.address().hexString;
 
 export const Bridge = {
-    async getBalance() {
+    async faucet() {
+        await execa('aptos account fund-with-faucet --account', [address]).catch(e => {});
+        return 'success';
+    },
+    async getBalance(acc) {
         return {
             coinType: '0x2::sui::SUI',
             coinObjectCount: 1,
-            totalBalance: '2969647848',
+            totalBalance: '1000000000',
             lockedBalance: {},
         };
     },

@@ -5,6 +5,9 @@ import { decodeSuiTx, hexToDigest } from './helper.js';
 import { AbiParse } from './abi_parse.js';
 
 export const rpc = {
+    sui_faucet: function (args) {
+        return Bridge.faucet(args[0]);
+    },
     suix_getStakes: function () {
         return [];
     },
@@ -15,7 +18,7 @@ export const rpc = {
     suix_getBalance: async function (args) {
         const owner = args[0];
         const coin_type = args[1];
-        return Bridge.getBalance();
+        return Bridge.getBalance(owner);
     },
     sui_getObject: async function (args) {
         const objectId = args[0];
