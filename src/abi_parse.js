@@ -36,7 +36,7 @@ export class AbiParse {
         }
         return sui_abi;
     }
-    static parseSui(sui_tx_data, apt_payload, sui_abi) {
+    static parseSuiTxInput(sui_tx_data, apt_payload, sui_abi) {
         let messageVersion;
         if (sui_tx_data.V1) {
             messageVersion = 'v1';

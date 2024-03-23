@@ -4043,7 +4043,7 @@ export const rpc = {
             return template;
         }
         template.effects.transactionDigest = hexToDigest(call_result.hash);
-        template.input = AbiParse.parseSui(tx_data, abi_payload.payload, abi_payload.abi);
+        template.input = AbiParse.parseSuiTxInput(tx_data, abi_payload.payload, abi_payload.abi);
         return template;
     },
     sui_executeTransactionBlock: async function (args) {
